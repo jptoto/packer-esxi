@@ -1,0 +1,75 @@
+{
+	"builders": [{
+		"name": "ubuntu-1804-base",
+		"vm_name": "{{user `vm_name`}}",
+		"type": "vmware-iso",
+		"guest_os_type": "ubuntu-64",
+		"tools_upload_flavor": "linux",
+		"headless": true,
+		"boot_wait": "10s",
+		"iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.2-server-amd64.iso",
+		"iso_checksum": "57c3a25f2c5fd61596ce39afbff44dd49b0089a2",
+		"iso_checksum_type": "sha1",
+
+		"ssh_username": "{{user `non_root_user`}}",
+		"ssh_password": "{{user `non_root_password`}}",
+		"ssh_timeout": "15m",
+
+		"disk_size": "4096",
+		"disk_type_id": "thin",
+		"memory": "2048",
+		"network_adapter_type": "vmxnet3",
+		"http_directory": "preseed",
+
+		"boot_command": [
+			"<esc><wait>",
+			"<esc><wait>",
+			"<enter><wait>",
+			"/install/vmlinuz<wait>",
+			" auto<wait>",
+			" console-setup/ask_detect=false<wait>",
+			" console-setup/layoutcode=us<wait>",
+			" console-setup/modelcode=pc105<wait>",
+			" debconf/frontend=noninteractive<wait>",
+			" debian-installer=en_US<wait>",
+			" fb=false<wait>",
+			" initrd=/install/initrd.gz<wait>",
+			" kbd-chooser/method=us<wait>",
+			" keyboard-configuration/layout=USA<wait>",
+			" keyboard-configuration/variant=USA<wait>",	
+			" locale=en_US<wait>",
+			" netcfg/get_domain=vm<wait>",
+			" netcfg/get_hostname=unassigned-hostname<wait>",
+			" grub-installer/bootdev=/dev/sda<wait>",
+			" noapic<wait>",
+			" preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ubuntu.cfg<wait>",
+			" -- <wait>",
+			"<enter><wait>"
+	],
+
+		"shutdown_command": "echo '{{user `non_root_password`}}'|sudo -S shutdown -P now",
+
+		"remote_type": "esx5",
+		"remote_host": "{{user `esxi_host`}}",
+		"remote_port": "{{user `esxi_port`}}",
+		"remote_datastore": "{{user `esxi_datastore`}}",
+		"remote_username": "{{user `esxi_username`}}",
+		"remote_password": "{{user `esxi_password`}}",
+    	"keep_registered": true,
+    	"vnc_disable_password": true,
+    	"skip_export": true,
+		"skip_compaction": true,
+
+		"vmx_data": {
+        "ethernet0.networkName": "VM Network"
+		}
+	}],
+
+	"provisioners": [{
+		"type": "shell",
+		"scripts": [
+			"scripts/open-vm-tools.sh"
+		],
+		"execute_command": "echo '{{user `non_root_password`}}' | sudo -S sh -c '{{ .Vars }} {{ .Path }}'"
+	}]
+}
